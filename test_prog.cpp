@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
   // Declare and initialize the threads
   for (int i = 0; i < THREAD_NUM; i++) {
     if(pthread_create(&threadArr[i], NULL, thread_fn, &threadArgs[i]) != 0) {
-      perror("Error creating a thread");
+      perror("Error creating a thread.");
       exit(2);
     }
   }

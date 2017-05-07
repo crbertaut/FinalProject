@@ -7,13 +7,10 @@
 #include "include/interpose.hh"
 
 /* https://github.com/ccurtsinger/interpose */
-/* https://gcc.gnu.org/onlinedocs/gcc-4.4.4/gcc/Code-Gen-Options.html */
-/* https://gcc.gnu.org/onlinedocs/gcc-4.0.0/gcc/Variable-Attributes.html */
 /* http://jayconrod.com/posts/23/tutorial-function-interposition-in-linux */
-/* https://gcc.gnu.org/onlinedocs/gcc-4.0.0/gcc/Thread_002dLocal.html#Thread_002dLocal */
-/* https://balau82.wordpress.com/2010/10/06/trace-and-profile-function-calls-with-gcc */
-/* http://codingrelic.geekhold.com/2010/09/gcc-function-instrumentation.html */
-/* https://mcuoneclipse.com/2015/04/04/poor-mans-trace-free-of-charge-function-entryexit-trace-with-gnu-tools */
+/* http://icl.cs.utk.edu/projects/papi/wiki/PAPIC:EventSets */
+/* http://icl.cs.utk.edu/projects/papi/wiki/PAPIC:Preset_Event_Definitions */
+/* http://icl.cs.utk.edu/projects/papi/wiki/PAPIC:Overview#Example_Code */
 
 int files_opened = 0;
 int files_closed = 0;
