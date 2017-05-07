@@ -1,0 +1,13 @@
+Final Project Proposal:
+
+==Password Cracker Lab==
+- Make a faster password cracker, one I can test with longer passwords, and passwords including numbers/uppercase letters.
+- Split work between GPU and CPU. Test to find fastest proportions (starting: ~10% CPU, ~90% GPU)
+- split work across multiple computers?
+
+==Malloc Lab==
+- Working set visualization - use custom malloc(?) and LD_PRELOAD and
+mprotect to catch memory accesses by threads. Use to learn which thread
+accessed which address. Analyze info to tell user how much/which memory in
+a program is shared b/w threads vs. used primarily by one thread, which is
+frequently/infrequently accessed, etc.
