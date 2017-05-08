@@ -21,17 +21,44 @@ int threads_used = 0;
 int retval, EventSet = PAPI_NULL;
 long long values[1];
 
-
+/*
 void stop(int EventSet, long long values[]) {
-    /* Stop counting events in EventSet */
+  // Stop counting events in EventSet
   if (PAPI_stop(EventSet, values) != PAPI_OK) {
     perror("Error stopping count for EventSet");
   }
 }
 
+
 int main(int argc, char ** argv) {
-    /* Initialize PAPI library */
+    // Initialize PAPI library
   retval = PAPI_library_init(PAPI_VER_CURRENT);
+  if (retval != PAPI_VER_CURRENT) {
+    fprintf(stderr, "PAPI library init error.\n");
+    exit(1);
+  }
+
+  // Create an EventSet
+  if (PAPI_create_eventset(&EventSet) != PAPI_OK) {
+    perror("Error creating EventSet");
+  }
+
+  // Add event to EventSet
+  if (PAPI_add_event(EventSet, PAPI_TOT_INS) != PAPI_OK) {
+    perror("Error adding event to EventSet");
+  }
+
+  // Start counting events in EventSet
+  if (PAPI_start(EventSet) != PAPI_OK) {
+    perror("Error starting count for EventSet");
+  }
+
+  return 0;
+}
+*/
+
+INTERPOSE(PAPI_library_init)(int version) {
+  retval = real::PAPI_library_init(version);
   if (retval != PAPI_VER_CURRENT) {
     fprintf(stderr, "PAPI library init error.\n");
     exit(1);
@@ -51,10 +78,8 @@ int main(int argc, char ** argv) {
   if (PAPI_start(EventSet) != PAPI_OK) {
     perror("Error starting count for EventSet");
   }
-  
-  return 0;
+  return retval;
 }
-
 
 
 
@@ -98,7 +123,7 @@ INTERPOSE(pthread_join)(pthread_t thread, void ** retVal) {
 }
 
 INTERPOSE(exit)(int status) {
-  stop(EventSet, values);
+  PAPI_stop(EventSet, values);
   
   printf("\n\nProgram Stats:\n");
   printf("----------FILES----------\n");
