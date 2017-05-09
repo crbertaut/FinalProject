@@ -1,7 +1,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <pthread.h>
-#include <papi.h>
 
 // Typedef a struct for arguments
 typedef struct thread_args {
@@ -15,13 +14,8 @@ pthread_barrier_t barrier;
 
 void* thread_fn(void* void_args) {
   thread_args_t* args = (thread_args_t*)void_args;
-
-  for(int i = 0; i < THREAD_NUM; i++) {
-    printf("Hello, I am number %d. ", i);
-    int* p = (int*)malloc(sizeof(int));
-    printf("I live at %p.\n", p);
-    free(p);
-  }
+  
+  //???
   
   pthread_barrier_wait (&barrier);
   return NULL;
@@ -29,8 +23,6 @@ void* thread_fn(void* void_args) {
 
   
 int main(int argc, char** argv) {
-
-  PAPI_library_init(PAPI_VER_CURRENT);
 
   // Create thread arrays
   pthread_t threadArr[THREAD_NUM];

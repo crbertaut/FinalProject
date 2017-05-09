@@ -18,7 +18,6 @@ int files_opened = 0;
 int files_closed = 0;
 int threads_made = 0;
 int threads_joined = 0;
-int threads_used = 0;
 
 int retval, EventSet = PAPI_NULL;
 long long values[3];
@@ -36,7 +35,6 @@ void stop(int EventSet, long long values[]) {
     perror("Error stopping count for EventSet");
   }
 }
-
 
 int custom_main(int argc, char ** argv, char ** envp) {
   // Initialize PAPI library
@@ -71,14 +69,26 @@ int custom_main(int argc, char ** argv, char ** envp) {
   exit(status);
 }
 
+extern "C" int __libc_start_main(main_fn_t, int, char**, void (*)(), void (*)(), void (*)(), void*) __attribute__((weak, alias("replacement_libc_start_main")));
 
+extern "C" int replacement_libc_start_main(main_fn_t main_fn, int argc, char** argv, void (*init)(), void (*fini)(), void (*rtld_fini)(), void* stack_end) {
+  // Find the real __libc_start_main
+  auto real_libc_start_main = (decltype(__libc_start_main)*)dlsym(RTLD_NEXT, "__libc_start_main");
+  // Save the program's real main function
+  real_main = main_fn;
+  // Run the real __libc_start_main, but pass in the custom main function
+  int result = real_libc_start_main(custom_main, argc, argv, init, fini, rtld_fini, stack_end);
+  return result;
+}
+
+/*
 INTERPOSE(__libc_start_main)(main_fn_t main_fn, int argc, char** argv,
     void (*init)(), void (*fini)(), void (*rtld_fini)(), void* stack_end) {
   // Save actual main function
   real_main = main_fn;
 
   real::__libc_start_main(custom_main, argc, argv, init, fini, rtld_fini, stack_end);
-}
+  }*/
 
 INTERPOSE(fopen)(const char * path, const char * mode) {
   FILE * file = real::fopen(path, mode);
@@ -120,8 +130,7 @@ INTERPOSE(pthread_join)(pthread_t thread, void ** retVal) {
 }
 
 INTERPOSE(exit)(int status) {
-
-  real::exit(status);
+  
   PAPI_stop(EventSet, values);
     
   printf("\n\nProgram Stats:\n");
@@ -131,16 +140,12 @@ INTERPOSE(exit)(int status) {
   printf("----------THREADS----------\n");
   printf("Threads created: %d\n", threads_made);
   printf("Threads joined: %d\n", threads_joined);
-  printf("Threads used: %d\n", threads_used);
   printf("----------MEMORY----------\n");
   printf("Memory accesses: \n");
   printf("----------INSTRUCTIONS----------\n");
   printf("Total instructions executed: %lli\n", values[0]);
+  printf("Total writes: %lli\n", values[1]);
+  printf("Total reads: %lli\n\n", values[2]);
+  
+  real::exit(status);
 }
-
-// Files opened and closed
-// Threads created and joined
-// Memory reads
-// Memory writes
-// Total instructions executed
-//

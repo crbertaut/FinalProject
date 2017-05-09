@@ -20,7 +20,7 @@ logger.$(SHLIB_SUFFIX): logger.cpp include/interpose.hh
 	$(CXXLIB) -I../../include --std=c++11 -o $@ $< -ldl
 
 test_prog: test_prog.cpp
-	$(CXX) -g --std=c++11 -o $@ $< -lpthread
+	$(CXX) -g --std=c++11 -o $@ $< -lpthread -lpapi
 
 test: test_prog logger.$(SHLIB_SUFFIX)
 	$(PRELOAD_VAR)=./logger.$(SHLIB_SUFFIX) ./test_prog
