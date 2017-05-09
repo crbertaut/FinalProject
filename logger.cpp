@@ -11,6 +11,8 @@
 /* http://icl.cs.utk.edu/projects/papi/wiki/PAPIC:EventSets */
 /* http://icl.cs.utk.edu/projects/papi/wiki/PAPIC:Preset_Event_Definitions */
 /* http://icl.cs.utk.edu/projects/papi/wiki/PAPIC:Overview#Example_Code */
+/* http://icl.cs.utk.edu/projects/papi/wiki/Events */
+/* http://www.informit.com/articles/article.aspx?p=23618&seqNum=10 */
 
 int files_opened = 0;
 int files_closed = 0;
@@ -19,9 +21,15 @@ int threads_joined = 0;
 int threads_used = 0;
 
 int retval, EventSet = PAPI_NULL;
-long long values[1];
+long long values[3];
 
-/*
+/// The type of a main function
+typedef int (*main_fn_t)(int, char**, char**);
+
+/// The program's real main function
+main_fn_t real_main;
+
+
 void stop(int EventSet, long long values[]) {
   // Stop counting events in EventSet
   if (PAPI_stop(EventSet, values) != PAPI_OK) {
@@ -30,8 +38,8 @@ void stop(int EventSet, long long values[]) {
 }
 
 
-int main(int argc, char ** argv) {
-    // Initialize PAPI library
+int custom_main(int argc, char ** argv, char ** envp) {
+  // Initialize PAPI library
   retval = PAPI_library_init(PAPI_VER_CURRENT);
   if (retval != PAPI_VER_CURRENT) {
     fprintf(stderr, "PAPI library init error.\n");
@@ -43,45 +51,34 @@ int main(int argc, char ** argv) {
     perror("Error creating EventSet");
   }
 
-  // Add event to EventSet
+  // Add events to EventSet
   if (PAPI_add_event(EventSet, PAPI_TOT_INS) != PAPI_OK) {
     perror("Error adding event to EventSet");
   }
+  if (PAPI_add_event(EventSet, PAPI_LD_INS) != PAPI_OK) {
+    perror("Error adding event to EventSet");
+  }
+  if (PAPI_add_event(EventSet, PAPI_SR_INS) != PAPI_OK) {
+    perror("Error adding event to EventSet");
+  } 
 
   // Start counting events in EventSet
   if (PAPI_start(EventSet) != PAPI_OK) {
     perror("Error starting count for EventSet");
   }
 
-  return 0;
-}
-*/
-
-INTERPOSE(PAPI_library_init)(int version) {
-  retval = real::PAPI_library_init(version);
-  if (retval != PAPI_VER_CURRENT) {
-    fprintf(stderr, "PAPI library init error.\n");
-    exit(1);
-  }
-
-  /* Create an EventSet */
-  if (PAPI_create_eventset(&EventSet) != PAPI_OK) {
-    perror("Error creating EventSet");
-  }
-
-  /* Add event to EventSet */
-  if (PAPI_add_event(EventSet, PAPI_TOT_INS) != PAPI_OK) {
-    perror("Error adding event to EventSet");
-  }
-
-  /* Start counting events in EventSet */
-  if (PAPI_start(EventSet) != PAPI_OK) {
-    perror("Error starting count for EventSet");
-  }
-  return retval;
+  int status = real_main(argc, argv, envp);
+  exit(status);
 }
 
 
+INTERPOSE(__libc_start_main)(main_fn_t main_fn, int argc, char** argv,
+    void (*init)(), void (*fini)(), void (*rtld_fini)(), void* stack_end) {
+  // Save actual main function
+  real_main = main_fn;
+
+  real::__libc_start_main(custom_main, argc, argv, init, fini, rtld_fini, stack_end);
+}
 
 INTERPOSE(fopen)(const char * path, const char * mode) {
   FILE * file = real::fopen(path, mode);
@@ -123,8 +120,10 @@ INTERPOSE(pthread_join)(pthread_t thread, void ** retVal) {
 }
 
 INTERPOSE(exit)(int status) {
+
+  real::exit(status);
   PAPI_stop(EventSet, values);
-  
+    
   printf("\n\nProgram Stats:\n");
   printf("----------FILES----------\n");
   printf("Files opened: %d\n", files_opened);
@@ -137,7 +136,11 @@ INTERPOSE(exit)(int status) {
   printf("Memory accesses: \n");
   printf("----------INSTRUCTIONS----------\n");
   printf("Total instructions executed: %lli\n", values[0]);
-  
-  
-  real::exit(status);
 }
+
+// Files opened and closed
+// Threads created and joined
+// Memory reads
+// Memory writes
+// Total instructions executed
+//

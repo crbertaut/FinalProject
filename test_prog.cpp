@@ -30,12 +30,7 @@ void* thread_fn(void* void_args) {
   
 int main(int argc, char** argv) {
 
-    // Initialize PAPI library
-  int retval = PAPI_library_init(PAPI_VER_CURRENT);
-  if (retval != PAPI_VER_CURRENT) {
-    fprintf(stderr, "PAPI library init error.\n");
-    exit(1);
-  }
+  PAPI_library_init(PAPI_VER_CURRENT);
 
   // Create thread arrays
   pthread_t threadArr[THREAD_NUM];
