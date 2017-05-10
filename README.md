@@ -13,3 +13,4 @@ Other sources:
 <http://icl.cs.utk.edu/projects/papi/wiki/PAPIC:EventSets>
 <http://icl.cs.utk.edu/projects/papi/wiki/PAPIC:Preset_Event_Definitions>
 <http://icl.cs.utk.edu/projects/papi/wiki/PAPIC:Overview#Example_Code>
+<https://github.com/plasma-umass/coz/blob/master/libcoz/libcoz.cpp>
